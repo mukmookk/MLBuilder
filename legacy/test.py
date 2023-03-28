@@ -1,5 +1,5 @@
 # import pytest ## https://towardsdatascience.com/pytest-for-machine-learning-a-simple-example-based-tutorial-a3df3c58cf8
-from basic_feeder_using_tf import VisionFeeder
+from legacy.feeder import VisionFeeder
 import matplotlib.pyplot as plt
 import pickle
 import numpy as np
