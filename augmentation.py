@@ -1,12 +1,25 @@
 import tensorflow as tf
 import random
 import numpy as np
+from PIL import Image
 
-class Augmentations:
+class Augmentation:
     def __init__(self):
         pass
     
-    def random_cropping(self, image, cropped_size):
+    def crop_image(self, iterator, coordinates=(0, 0, 32, 32)):
+        cropped_images = []  # Change the variable name to avoid conflicts
+        for batch in iterator:
+            for image in batch[0]:  # Assuming that the first element of the tuple is the batch of images
+                # Convert data type to uint8
+                image_uint8 = image.numpy().astype(np.uint8)
+
+                cropped_image = Image.fromarray(image_uint8).crop(coordinates)
+                cropped_images.append(cropped_image)  # Append the cropped_image to the list
+
+        return cropped_images
+
+    def random_cropping(self, iter, cropped_size):
         """
         Augmentation option #1
         Randomly crop a PIL Image to the given size.
@@ -16,13 +29,13 @@ class Augmentations:
         Returns:
             PIL Image: Cropped image.
         """
-        width, height = self.image_size
+        width, height = (32, 32)
         left = random.randint(0, width - cropped_size[0])
         top = random.randint(0, height - cropped_size[1])
         right = left + cropped_size[0]
         bottom = top + cropped_size[1]
         
-        return image.crop((left, top, right, bottom))
+        return self.crop_image(iter, (left, top, right, bottom))
     
 
     def random_rotation(self, image, max_angle):
@@ -200,59 +213,4 @@ class Augmentations:
         # Apply the displacement to the image
         return tf.gather_nd(tf.keras.preprocessing.image.apply_affine_transform(image, grid), grid)
     
-    def style_transfer(self, image, style_image, content_weight=1e-2, style_weight=1e2):
-        """
-        Apply style transfer augmentation to a TensorFlow tensor image.
-        Args:
-            image (Tensor): Image to be augmented.
-            style_image (Tensor): Style image to transfer.
-            content_weight (float): Weight of the content loss.
-            style_weight (float): Weight of the style loss.
-        Returns:
-            Tensor: Augmented image.
-        """
-        # Load the VGG19 model for feature extraction
-        vgg19 = tf.keras.applications.VGG19(include_top=False, weights='imagenet')
-        # Freeze the model weights
-        vgg19.trainable = False
-        # Define the content and style layers
-        content_layers = ['block5_conv2']
-        style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1', 'block4_conv1', 'block5_conv1']
-        num_content_layers = len(content_layers)
-        num_style_layers = len(style_layers)
-        # Define the gram matrix function
-        def gram_matrix(input_tensor):
-            channels = int(input_tensor.shape[-1])
-            a = tf.reshape(input_tensor, [-1, channels])
-            n = tf.shape(a)[0]
-            gram = tf.matmul(a, a, transpose_a=True)
-            return gram / tf.cast(n, tf.float32)
-        # Define the feature extraction model
-        extractor = tf.keras.Model(inputs=vgg19.input, outputs=[vgg19.get_layer(name).output for name in (content_layers + style_layers)])
-        # Extract the content and style features from the input and style images
-        content_targets = extractor(image)[:num_content_layers]
-        style_targets = extractor(style_image)[num_content_layers:]
-        # Calculate the content loss
-        content_loss = tf.add_n([tf.reduce_mean((content_targets[i] - extractor(image)[i]) ** 2) for i in range(num_content_layers)])
-        content_loss *= content_weight / num_content_layers
-        # Calculate the style loss
-        style_loss = 0
-        for i in range(num_style_layers):
-            gram_style = gram_matrix(style_targets[i])
-            gram_size = tf.size(gram_style)
-            style_features = extractor(image)[i + num_content_layers]
-            gram_features = gram_matrix(style_features)
-            style_loss += tf.reduce_mean((gram_features - gram_style) ** 2) / (4.0 * tf.cast(gram_size, tf.float32) ** 2)
-        style_loss *= style_weight / num_style_layers
-        # Calculate the total loss
-        total_loss = content_loss + style_loss
-        # Compute the gradients of the total loss with respect to the image
-        grad = tf.gradients(total_loss, image)[0]
-        # Normalize the gradients
-        norm_grad = grad / tf.math.reduce_std(grad)
-        # Add the normalized gradients to the image to perform style transfer
-        alpha = 1e-1
-        image += alpha * norm_grad
-        # Clip the image to the valid range of pixel values
-        image = tf.clip_by_value(image, 0, 255)
-        return image
+   

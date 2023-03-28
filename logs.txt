@@ -1,0 +1,13 @@
+Epoch 1/5
+1563/1563 [==============================] - 285s 177ms/step - loss: 1.4110 - sparse_categorical_accuracy: 0.5313 - val_loss: 1.2631 - val_sparse_categorical_accuracy: 0.5919
+Epoch 2/5
+1563/1563 [==============================] - ETA: 0s - loss: 1.0667 - sparse_categorical_accuracy: 0.6644WARNING:tensorflow:Your input ran out of data; interrupting training. Make sure that your dataset or generator can generate at least `steps_per_epoch * epochs` batches (in this case, 313 batches). You may need to use the repeat() function when building your dataset.
+1563/1563 [==============================] - 246s 157ms/step - loss: 1.0667 - sparse_categorical_accuracy: 0.6644
+Epoch 3/5
+1563/1563 [==============================] - 261s 167ms/step - loss: 0.9273 - sparse_categorical_accuracy: 0.7192
+Epoch 4/5
+1563/1563 [==============================] - 262s 167ms/step - loss: 0.8427 - sparse_categorical_accuracy: 0.7509
+Epoch 5/5
+1563/1563 [==============================] - 243s 156ms/step - loss: 0.7747 - sparse_categorical_accuracy: 0.7748
+313/313 [==============================] - 10s 33ms/step - loss: 1.0140 - sparse_categorical_accuracy: 0.7165
+Test loss: 1.0139997005462646, Test accuracy: 0.7164999842643738

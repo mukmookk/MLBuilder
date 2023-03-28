@@ -1,1 +1,4 @@
 .github/
+__pycache__
+cifar-10*
+resnet*

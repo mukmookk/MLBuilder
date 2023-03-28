@@ -4,7 +4,7 @@ import os
 import random
 import tensorflow as tf
 import pickle
-import matplotlib.pyplot as plt
+from utils import *
 from keras.preprocessing.image import ImageDataGenerator
 
 from augmentation import Augmentation
@@ -12,50 +12,32 @@ from augmentation import Augmentation
 class CIFAR10Feeder(Augmentation):
     def __init__(self, **kwargs):
         super().__init__()
-        
-        # kwargs
-        self.train_batch_size = kwargs.get("train_batch_size", 32)
-        self.test_batch_size = kwargs.get("train_batch_size", 32)
-        self.buffer_size = kwargs.get("buffer_size", 1000)
+        self.train_batch_size = kwargs.get("train_size", 32)
+        self.test_batch_size = kwargs.get("test_size", 32)
+        self.buffer_size = kwargs.get("buffer_size", 2000)
         
         self.epochs = kwargs.get("epochs", 10)
         self.image_size = kwargs.get("image_size", (32, 32))
         self.image_dir = kwargs.get("data_dir", "./cifar-10-batches-py")
-
-
-    def load_dataset(self, file, encodeType):
-        with open(file, 'rb') as fo:
-            dict = pickle.load(fo, encoding=encodeType)
-        return dict
-    
     
     def preprocess_image(self, image):
         # Load the image file using TensorFlow
         image = tf.cast(image, tf.float32) / 255.0
         image = tf.reshape(image, [32, 32, 3])
         return image
-        
-        
-    def count_batch_files(self, **kwargs):
-        # pattern = kwargs.get("pattern", "data_batch_")
-        ##############################
-        # count all train batches in directory #
-        pass
-    
     
     def load_batch(self, file):
-        with open(file, 'rb') as fo:
-            dict = pickle.load(fo, encoding='bytes')
-        return dict
+        with open(file, 'rb') as f:
+            dict = pickle.load(f, encoding='bytes')
+            return {key.decode(): value for key, value in dict.items()}                                               # keys are byte strings, and values are regular strings. So, we need to decode keys as regular strings.
 
 
-    def get_train_data(self, **kwargs):
-        target_images = os.join(self.image_dir, 'data_batch_{}'.format(i))
+    def get_train_data(self):
         # load data
-        train_batches = [self.load_batch(os.join(self.image_dir, 'data_batch_{}'.format(i))) for i in range(1, 6)]
-        X_train = np.concatenate([batch[b'data'] for batch in train_batches], axis=0)
-        y_train = np.concatenate([batch[b'labels'] for batch in train_batches], axis=0)
-        X_train = X_train.reshape(-1, 3, self.image_size[0], self.image_size[1]).transpose(0, 2, 3, 1)
+        train_batches = [self.load_batch(os.path.join(self.image_dir, 'data_batch_{}'.format(i))) for i in range(1, 6)]
+        X_train = np.concatenate([batch['data'] for batch in train_batches], axis=0)                                  # extract data from batches
+        y_train = np.concatenate([batch['labels'] for batch in train_batches], axis=0)                                # extract labels from batches
+        X_train = X_train.reshape(-1, 3, self.image_size[0], self.image_size[1]).transpose(0, 2, 3, 1)                          # reshape data to (32, 32, 3)
         
         # preprocess data
         train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
@@ -65,11 +47,11 @@ class CIFAR10Feeder(Augmentation):
         return train_dataset.__iter__()
 
 
-    def get_valid_data(self, **kwargs):
+    def get_valid_data(self):
         # load data
-        test_batches = self.load_batch(os.join(self.image_dir, "test_batch"))
-        X_test = np.concatenate([batch[b'data'] for batch in test_batches], axis=0)
-        y_test = np.concatenate([batch[b'labels'] for batch in test_batches], axis=0)
+        test_batch = self.load_batch(os.path.join(self.image_dir, "test_batch"))
+        X_test = test_batch['data']
+        y_test = test_batch['labels']
         X_test = X_test.reshape(-1, 3, self.image_size[0], self.image_size[1]).transpose(0, 2, 3, 1)
         
         # preprocess data
@@ -105,27 +87,24 @@ class CIFAR10Feeder(Augmentation):
         
         return train_generator, validation_generator
     
-    def augment_image(self, image, options):
-        if options['crop'] is not None:
-            self.random_cropping(image, (10, 10))
-        
-        if options['rotation'] is not None:
-            self.random_rotation(image, 20)
-        
-        if options['flip'] is not None:
-            self.random_flipping(image)
+    def augment_image(self, iter, options=None):
+        if options is None:
+            options = {}
             
-        if options['brightness'] is not None:
-            self.random_brightness(image)
-    
-    def show_plots(self):
-        class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-        fig, axes = plt.subplots(nrows=5, ncols=5, figsize=(10, 10))
-        for i in range(25):
-            axes[i].imshow(self.X_train[i])
-            axes[i].set_title(class_names[self.y_train[i]])
-            axes[i].axis('off')
-        plt.show()
-    
+        if options.get('crop', False):
+            pil_images = self.random_cropping(iter, (10, 10))
+        
+        # Add more augmentation options here as needed
+        
+        # Convert all PIL images in the iterator to TensorFlow tensors
+        image_tensors = [convert_pil_to_tensor(image) for image in pil_images]
+        
+        return image_tensors
 
+###### Test ######
+if __name__ == "__main__":
+    feeder = CIFAR10Feeder(train_size=32, test_size=32, buffer_size=1000, epochs=10, image_size=(32, 32), data_dir="./cifar-10-batches-py")
+    train_dataset = feeder.get_train_data()
     
+    print_iterator_items(train_dataset)
+    # feeder.show_plots()
