@@ -12,7 +12,7 @@ log_dir = "./logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 summary_writer = tf.summary.create_file_writer(log_dir) 
 
 # Define the hyperparameters
-epochs = 5
+epochs = 1
 train_set_size = 64
 
 # Fetch the data and preprocess it
@@ -47,14 +47,14 @@ model.compile(optimizer=optimizers.Adam(learning_rate=1e-3),
 # steps_per_epoch = math.ceil(50000 / feeder.train_batch_size)
 
 # Train the model using the fit() method 
-# history = model.fit(train_dataset, epochs=epochs, steps_per_epoch=steps_per_epoch, validation_data=test_dataset)
-# Train the model with GradientTape
 print("Training the model with GradientTape")
 for epoch in range(epochs):
+    data_no = 0
     epoch_loss = tf.keras.metrics.Mean()
     print("Epoch {}/{}".format(epoch + 1, epochs))
     for X_batch, y_batch in train_dataset:
-        print("X_batch.shape: {}".format(X_batch.shape))
+        print("No {} dataset, X_batch.shape: {}".format(data_no, X_batch.shape))
+        
         with tf.GradientTape() as tape:
             # Compute the forward pass of the model
             logits = model(X_batch, training=True)
