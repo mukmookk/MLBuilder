@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import os
-import random
 import tensorflow as tf
 import pickle
 from utils import *
@@ -18,7 +17,7 @@ class CIFAR10Feeder(Augmentation):
         
         self.epochs = kwargs.get("epochs", 10)
         self.image_size = kwargs.get("image_size", (32, 32))
-        self.image_dir = kwargs.get("data_dir", "./cifar-10-batches-py")
+        self.image_dir = "./cifar-10-python/cifar-10-batches-py"
     
     def preprocess_image(self, image):
         # Load the image file using TensorFlow
@@ -31,10 +30,9 @@ class CIFAR10Feeder(Augmentation):
             dict = pickle.load(f, encoding='bytes')
             return {key.decode(): value for key, value in dict.items()}                                               # keys are byte strings, and values are regular strings. So, we need to decode keys as regular strings.
 
-
     def get_train_data(self):
         # load data
-        train_batches = [self.load_batch(os.path.join(self.image_dir, 'data_batch_{}'.format(i))) for i in range(1, 6)]
+        train_batches = [self.load_batch(os.path.join(self.image_dir, 'data_batch_{}'.format(i)).replace('\\', '/')) for i in range(1, 6)]
         X_train = np.concatenate([batch['data'] for batch in train_batches], axis=0)                                  # extract data from batches
         y_train = np.concatenate([batch['labels'] for batch in train_batches], axis=0)                                # extract labels from batches
         X_train = X_train.reshape(-1, 3, self.image_size[0], self.image_size[1]).transpose(0, 2, 3, 1)                          # reshape data to (32, 32, 3)
@@ -101,10 +99,8 @@ class CIFAR10Feeder(Augmentation):
         
         return image_tensors
 
-###### Test ######
 if __name__ == "__main__":
-    feeder = CIFAR10Feeder(train_size=32, test_size=32, buffer_size=1000, epochs=10, image_size=(32, 32), data_dir="./cifar-10-batches-py")
+    feeder = CIFAR10Feeder(train_size=32, test_size=32, buffer_size=1000, epochs=10, image_size=(32, 32), data_dir="./cifar-10-python/cifar-10-batches-py/")
     train_dataset = feeder.get_train_data()
     
     print_iterator_items(train_dataset)
-    # feeder.show_plots()
