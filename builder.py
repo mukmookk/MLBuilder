@@ -71,6 +71,9 @@ for epoch in range(epochs):
         # Update the progress bar with the current loss value
         progress_bar.set_postfix({'loss': epoch_loss.result().numpy()})
         
+        # Evaluate the model on the validation set
+        # val_logits = model(x_val)
+        # val_loss = loss
     # Reset the loss metric for the next epoch
     epoch_loss.reset_states()
     # Log the loss and accuracy values at the end of each epoch using Tensorboard
