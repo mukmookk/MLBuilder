@@ -54,7 +54,7 @@ for epoch in range(epochs):
     print("Epoch {}/{}".format(epoch + 1, epochs))
     for X_batch, y_batch in train_dataset:
         print("No {} dataset, X_batch.shape: {}".format(data_no, X_batch.shape))
-        
+        data_no = data_no + 1
         with tf.GradientTape() as tape:
             # Compute the forward pass of the model
             logits = model(X_batch, training=True)
@@ -89,3 +89,4 @@ with summary_writer.as_default():
 
 # Save the trained model
 summary_writer.close()
+
