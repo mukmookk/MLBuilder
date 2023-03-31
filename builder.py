@@ -56,7 +56,7 @@ print("Training the model with GradientTape")
 for epoch in range(config.epochs):
     data_no = 0
     epoch_loss = tf.keras.metrics.Mean()
-    print("Epoch {}/{}".format(epoch + 1, epochs))
+    print("Epoch {}/{}".format(epoch + 1, config.epochs))
     for X_batch, y_batch in train_dataset:
         print("No {} dataset, X_batch.shape: {}".format(data_no, X_batch.shape))
         data_no = data_no + 1

@@ -21,7 +21,7 @@ class Config:
         self.datset = args.dataset
         self.image_size = args.data_path
         self.batch_size = args.batch_size
-        self.val_size = args.args.val_size
+        self.val_size = args.val_size
         self.model = args.model
         self.epochs = args.epochs
         self.lr_init = args.lr_init
