@@ -2,7 +2,7 @@ import numpy as np
 import os
 import tensorflow as tf
 import pickle
-from utils import *
+from srcs.utils import *
 from keras.preprocessing.image import ImageDataGenerator
 from augmentation import Augmentation
 
