@@ -1,8 +1,0 @@
-.github/
-__pycache__
-cifar-10*
-resnet*
-.DS_Store
-.gitignore
-.DS_Store
-log*
